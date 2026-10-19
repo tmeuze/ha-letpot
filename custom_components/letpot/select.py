@@ -7,9 +7,11 @@ from typing import Any, override
 
 from letpot.deviceclient import LetPotDeviceClient
 from letpot.models import (
+    CycleWateringMode,
     DeviceFeature,
     LetPotDeviceStatus,
     LetPotGardenStatus,
+    LetPotWateringSystemStatus,
     LightMode,
     TemperatureUnit,
 )
@@ -20,6 +22,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import LetPotConfigEntry, LetPotDeviceCoordinator
+from .watering import async_update_watering
 from .entity import LetPotEntity, LetPotEntityDescription, exception_handler
 
 # Each change pushes a 'full' device status with the change. The library will cache
@@ -136,6 +139,25 @@ SELECTORS: tuple[LetPotSelectEntityDescription[LetPotDeviceStatus], ...] = (
         entity_category=EntityCategory.CONFIG,
         supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotGardenStatus),
     ),
+    LetPotSelectEntityDescription[LetPotDeviceStatus](
+        key="cycle_mode",
+        translation_key="cycle_mode",
+        options=[x.name.lower() for x in CycleWateringMode],
+        value_fn=(
+            lambda coordinator: (
+                coordinator.data.pump_cycle_mode.name.lower()
+                if isinstance(coordinator.data, LetPotWateringSystemStatus)
+                else None
+            )
+        ),
+        set_value_fn=(
+            lambda device_client, serial, option: async_update_watering(
+                device_client, serial, pump_cycle_mode=CycleWateringMode[option.upper()]
+            )
+        ),
+        entity_category=EntityCategory.CONFIG,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
 )
 
 
@@ -150,7 +172,7 @@ async def async_setup_entry(
         LetPotSelectEntity[LetPotDeviceStatus](coordinator, description)
         for description in SELECTORS
         for coordinator in coordinators
-        if isinstance(coordinator.data, LetPotGardenStatus) and description.supported_fn(coordinator)
+        if description.supported_fn(coordinator)
     )
 
 

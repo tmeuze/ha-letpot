@@ -1,3 +1,4 @@
+from collections.abc import Callable, Coroutine
 import dataclasses
 from dataclasses import dataclass
 from typing import Any, override
@@ -16,6 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import LetPotConfigEntry, LetPotDeviceCoordinator
+from .watering import async_update_watering
 from .entity import LetPotEntity, LetPotEntityDescription, exception_handler
 
 # Each change pushes a 'full' device status with the change. The library will cache
@@ -31,10 +33,6 @@ class LetPotSwitchEntityDescription[_DataT: LetPotDeviceStatus](
 
     value_fn: Callable[[_DataT], bool | None]
     set_value_fn: Callable[[LetPotDeviceClient, str, bool], Coroutine[Any, Any, None]]
-
-
-# We'll continue the file from the start of SWITCHES...
-
 
 
 SWITCHES: tuple[LetPotSwitchEntityDescription[LetPotDeviceStatus], ...] = (
@@ -92,9 +90,19 @@ SWITCHES: tuple[LetPotSwitchEntityDescription[LetPotDeviceStatus], ...] = (
         key="pump",
         translation_key="pump",
         value_fn=lambda status: status.pump_on if isinstance(status, LetPotWateringSystemStatus) else False,
-        set_value_fn=lambda device_client, serial, value: device_client.set_pump_mode(
-            serial, value
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_mode=1 if value else 0
         ),
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotSwitchEntityDescription[LetPotDeviceStatus](
+        key="pump_cycle",
+        translation_key="pump_cycle",
+        value_fn=lambda status: status.pump_cycle_on if isinstance(status, LetPotWateringSystemStatus) else None,
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_cycle_on=value
+        ),
+        entity_category=EntityCategory.CONFIG,
         supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
     ),
 )

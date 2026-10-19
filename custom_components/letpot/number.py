@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import LetPotConfigEntry, LetPotDeviceCoordinator
+from .watering import async_update_watering
 from .entity import LetPotEntity, LetPotEntityDescription, exception_handler
 
 # Each change pushes a 'full' device status with the change. The library will cache
@@ -93,6 +94,101 @@ NUMBERS: tuple[LetPotNumberEntityDescription[LetPotDeviceStatus], ...] = (
         mode=NumberMode.BOX,
         supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotGardenStatus),
     ),
+    LetPotNumberEntityDescription[LetPotDeviceStatus](
+        key="manual_duration",
+        translation_key="manual_duration",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        value_fn=lambda coordinator: (
+            coordinator.data.pump_manual_duration
+            if isinstance(coordinator.data, LetPotWateringSystemStatus)
+            else None
+        ),
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_manual_duration=int(value)
+        ),
+        native_min_value=float(0),
+        max_value_fn=lambda _: float(65535),
+        native_step=PRECISION_WHOLE,
+        mode=NumberMode.BOX,
+        entity_category=EntityCategory.CONFIG,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotNumberEntityDescription[LetPotDeviceStatus](
+        key="cycle_frequency",
+        translation_key="cycle_frequency",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        value_fn=lambda coordinator: (
+            coordinator.data.pump_cycle_frequency
+            if isinstance(coordinator.data, LetPotWateringSystemStatus)
+            else None
+        ),
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_cycle_frequency=int(value)
+        ),
+        native_min_value=float(0),
+        max_value_fn=lambda _: float(65535),
+        native_step=PRECISION_WHOLE,
+        mode=NumberMode.BOX,
+        entity_category=EntityCategory.CONFIG,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotNumberEntityDescription[LetPotDeviceStatus](
+        key="cycle_duration",
+        translation_key="cycle_duration",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        value_fn=lambda coordinator: (
+            coordinator.data.pump_cycle_duration
+            if isinstance(coordinator.data, LetPotWateringSystemStatus)
+            else None
+        ),
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_cycle_duration=int(value)
+        ),
+        native_min_value=float(0),
+        max_value_fn=lambda _: float(65535),
+        native_step=PRECISION_WHOLE,
+        mode=NumberMode.BOX,
+        entity_category=EntityCategory.CONFIG,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotNumberEntityDescription[LetPotDeviceStatus](
+        key="cycle_work_interval",
+        translation_key="cycle_work_interval",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        value_fn=lambda coordinator: (
+            coordinator.data.pump_cycle_workinginterval
+            if isinstance(coordinator.data, LetPotWateringSystemStatus)
+            else None
+        ),
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_cycle_workinginterval=int(value)
+        ),
+        native_min_value=float(0),
+        max_value_fn=lambda _: float(65535),
+        native_step=PRECISION_WHOLE,
+        mode=NumberMode.BOX,
+        entity_category=EntityCategory.CONFIG,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotNumberEntityDescription[LetPotDeviceStatus](
+        key="cycle_rest_interval",
+        translation_key="cycle_rest_interval",
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        value_fn=lambda coordinator: (
+            coordinator.data.pump_cycle_restinterval
+            if isinstance(coordinator.data, LetPotWateringSystemStatus)
+            else None
+        ),
+        set_value_fn=lambda device_client, serial, value: async_update_watering(
+            device_client, serial, pump_cycle_restinterval=int(value)
+        ),
+        native_min_value=float(0),
+        max_value_fn=lambda _: float(65535),
+        native_step=PRECISION_WHOLE,
+        mode=NumberMode.BOX,
+        entity_category=EntityCategory.CONFIG,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
 )
 
 
@@ -107,7 +203,7 @@ async def async_setup_entry(
         LetPotNumberEntity[LetPotDeviceStatus](coordinator, description)
         for description in NUMBERS
         for coordinator in coordinators
-        if isinstance(coordinator.data, LetPotGardenStatus) and description.supported_fn(coordinator)
+        if description.supported_fn(coordinator)
     )
 
 

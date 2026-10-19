@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import override
 
 from letpot.models import (
@@ -10,6 +11,7 @@ from letpot.models import (
     LetPotGardenStatus,
     LetPotWateringSystemStatus,
     TemperatureUnit,
+    WateringReason,
 )
 
 from homeassistant.components.sensor import (
@@ -18,7 +20,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, UnitOfTemperature, UnitOfTime
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -33,6 +35,11 @@ LETPOT_TEMPERATURE_UNIT_HA_UNIT = {
     TemperatureUnit.CELSIUS: UnitOfTemperature.CELSIUS,
     TemperatureUnit.FAHRENHEIT: UnitOfTemperature.FAHRENHEIT,
 }
+
+
+def _minute(value: datetime | None) -> datetime | None:
+    """Round a derived timestamp down to the minute to avoid jitter on every push."""
+    return value.replace(second=0, microsecond=0) if value is not None else None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -83,6 +90,57 @@ SENSORS: tuple[LetPotSensorEntityDescription[LetPotDeviceStatus], ...] = (
             )
         ),
     ),
+    # Watering system sensors
+    LetPotSensorEntityDescription[LetPotDeviceStatus](
+        key="next_watering",
+        translation_key="next_watering",
+        value_fn=lambda status: (
+            _minute(status.pump_works_next_time)
+            if isinstance(status, LetPotWateringSystemStatus)
+            else None
+        ),
+        native_unit_of_measurement_fn=lambda _: None,
+        device_class=SensorDeviceClass.TIMESTAMP,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotSensorEntityDescription[LetPotDeviceStatus](
+        key="last_watering",
+        translation_key="last_watering",
+        value_fn=lambda status: (
+            _minute(status.pump_works_latest_time)
+            if isinstance(status, LetPotWateringSystemStatus)
+            else None
+        ),
+        native_unit_of_measurement_fn=lambda _: None,
+        device_class=SensorDeviceClass.TIMESTAMP,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotSensorEntityDescription[LetPotDeviceStatus](
+        key="watering_end",
+        translation_key="watering_end",
+        value_fn=lambda status: (
+            _minute(status.pump_works_end)
+            if isinstance(status, LetPotWateringSystemStatus)
+            else None
+        ),
+        native_unit_of_measurement_fn=lambda _: None,
+        device_class=SensorDeviceClass.TIMESTAMP,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
+    LetPotSensorEntityDescription[LetPotDeviceStatus](
+        key="last_watering_reason",
+        translation_key="last_watering_reason",
+        value_fn=lambda status: (
+            WateringReason(status.pump_works_latest_reason).name.lower()
+            if isinstance(status, LetPotWateringSystemStatus)
+            else None
+        ),
+        native_unit_of_measurement_fn=lambda _: None,
+        device_class=SensorDeviceClass.ENUM,
+        options=[x.name.lower() for x in WateringReason],
+        entity_category=EntityCategory.DIAGNOSTIC,
+        supported_fn=lambda coordinator: isinstance(coordinator.data, LetPotWateringSystemStatus),
+    ),
 )
 
 
@@ -97,7 +155,7 @@ async def async_setup_entry(
         LetPotSensorEntity[LetPotDeviceStatus](coordinator, description)
         for description in SENSORS
         for coordinator in coordinators
-        if isinstance(coordinator.data, LetPotGardenStatus) and description.supported_fn(coordinator)
+        if description.supported_fn(coordinator)
     )
 
 

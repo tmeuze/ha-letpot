@@ -1,28 +1,28 @@
 {
   "config": {
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
-      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]"
+      "already_configured": "Account is already configured",
+      "reauth_successful": "Re-authentication was successful"
     },
     "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
     },
     "step": {
       "reauth_confirm": {
         "data": {
-          "password": "[%key:common::config_flow::data::password%]"
+          "password": "Password"
         },
         "data_description": {
-          "password": "[%key:component::letpot::config::step::user::data_description::password%]"
+          "password": "The password of your LetPot account."
         },
         "description": "The LetPot integration needs to re-authenticate your account {email}."
       },
       "user": {
         "data": {
-          "email": "[%key:common::config_flow::data::email%]",
-          "password": "[%key:common::config_flow::data::password%]"
+          "email": "Email",
+          "password": "Password"
         },
         "data_description": {
           "email": "The email address of your LetPot account.",
@@ -40,7 +40,7 @@
         "name": "Low water"
       },
       "pump": {
-        "name": "Pump"
+        "name": "Pump running"
       },
       "pump_error": {
         "name": "Pump error"
@@ -55,6 +55,21 @@
       },
       "plant_days": {
         "name": "Plants age"
+      },
+      "manual_duration": {
+        "name": "Manual watering duration"
+      },
+      "cycle_frequency": {
+        "name": "Cycle frequency"
+      },
+      "cycle_duration": {
+        "name": "Cycle duration"
+      },
+      "cycle_work_interval": {
+        "name": "Cycle work interval"
+      },
+      "cycle_rest_interval": {
+        "name": "Cycle rest interval"
       }
     },
     "select": {
@@ -66,10 +81,10 @@
         }
       },
       "light_brightness": {
-        "name": "[%key:component::letpot::entity::number::light_brightness::name%]",
+        "name": "Light brightness",
         "state": {
-          "high": "[%key:common::state::high%]",
-          "low": "[%key:common::state::low%]"
+          "high": "High",
+          "low": "Low"
         }
       },
       "light_mode": {
@@ -78,11 +93,37 @@
           "flower": "Fruits/Flowers",
           "vegetable": "Veggies/Herbs"
         }
+      },
+      "cycle_mode": {
+        "name": "Cycle mode",
+        "state": {
+          "continuous": "Continuous",
+          "intermittent": "Intermittent"
+        }
       }
     },
     "sensor": {
       "water_level": {
         "name": "Water level"
+      },
+      "next_watering": {
+        "name": "Next watering"
+      },
+      "last_watering": {
+        "name": "Last watering"
+      },
+      "watering_end": {
+        "name": "Watering ends"
+      },
+      "last_watering_reason": {
+        "name": "Last watering reason",
+        "state": {
+          "no_run": "Never run",
+          "interrupted": "Interrupted",
+          "manual": "Manual",
+          "cycle": "Cycle",
+          "scheduled": "Scheduled"
+        }
       }
     },
     "switch": {
@@ -100,6 +141,9 @@
       },
       "pump": {
         "name": "Pump"
+      },
+      "pump_cycle": {
+        "name": "Cycle watering"
       }
     },
     "time": {

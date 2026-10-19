@@ -1,0 +1,16 @@
+{
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/letpot",
+  "domain": "letpot",
+  "integration_type": "hub",
+  "iot_class": "cloud_push",
+  "loggers": [
+    "letpot"
+  ],
+  "name": "LetPot",
+  "requirements": [
+    "letpot==0.7.0"
+  ],
+  "version": "1.1.0"
+}
