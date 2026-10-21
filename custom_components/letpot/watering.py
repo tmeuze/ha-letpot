@@ -2,52 +2,15 @@
 
 python-letpot 0.7.0 can read watering system status, but only exposes
 `set_pump_mode` for writing. These helpers cover the remaining settings until the
-library gains public setters.
+library gains public setters. Writes use the library's own message encoder: do not
+override it (an earlier override with the duration bytes before the cycle flag
+corrupted the stored manual duration on a DI-3).
 """
 
 import dataclasses
-import math
 from typing import Any
 
-from letpot.converters import ISEConverter
 from letpot.deviceclient import LetPotDeviceClient
-from letpot.exceptions import LetPotDeviceCategoryException
-from letpot.models import LetPotDeviceStatus, LetPotWateringSystemStatus
-
-
-def _patched_get_update_status_message(
-    self: ISEConverter, status: LetPotDeviceStatus
-) -> list[int]:
-    """Build the ISE update message with the manual duration before the cycle flag.
-
-    Library 0.7.0 places the cycle flag before the manual duration; the community
-    DI-3 fix reports that this corrupts values on write. UNVERIFIED against a
-    packet capture, so keep it isolated here and drop it once resolved upstream.
-    """
-    if not isinstance(status, LetPotWateringSystemStatus):
-        raise LetPotDeviceCategoryException
-    return [
-        65,
-        2,
-        1 if status.pump_mode > 0 else 0,
-        math.floor((status.pump_manual_duration or 0) / 256),
-        (status.pump_manual_duration or 0) % 256,
-        1 if status.pump_cycle_on is True else 0,
-        math.floor((status.pump_cycle_frequency or 0) / 256),
-        (status.pump_cycle_frequency or 0) % 256,
-        math.floor((status.pump_cycle_duration or 0) / 256),
-        (status.pump_cycle_duration or 0) % 256,
-        status.pump_cycle_mode or 0,
-        math.floor((status.pump_cycle_workinginterval or 0) / 256),
-        (status.pump_cycle_workinginterval or 0) % 256,
-        math.floor((status.pump_cycle_restinterval or 0) / 256),
-        (status.pump_cycle_restinterval or 0) % 256,
-    ]
-
-
-def apply_protocol_patch() -> None:
-    """Apply the write message patch (idempotent)."""
-    ISEConverter.get_update_status_message = _patched_get_update_status_message  # type: ignore[method-assign]
 
 
 async def async_update_watering(

@@ -20,7 +20,6 @@ from .const import (
     CONF_USER_ID,
 )
 from .coordinator import LetPotConfigEntry, LetPotDeviceCoordinator
-from .watering import apply_protocol_patch
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
@@ -34,7 +33,6 @@ PLATFORMS: list[Platform] = [
 
 async def async_setup_entry(hass: HomeAssistant, entry: LetPotConfigEntry) -> bool:
     """Set up LetPot from a config entry."""
-    apply_protocol_patch()
 
     auth = AuthenticationInfo(
         access_token=entry.data[CONF_ACCESS_TOKEN],
