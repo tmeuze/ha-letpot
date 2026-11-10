@@ -19,6 +19,14 @@ A HACS custom integration that **replaces** Home Assistant core's `letpot` integ
 | Next watering, Last watering, Watering ends | timestamp sensors (rounded to the minute) |
 | Last watering reason | enum sensor (diagnostic) |
 
+## Dry-run protection
+A **Dry-run protection** config switch (per watering system, on by default) uses the device's low-water flag (the **Low water** binary sensor, now enabled by default):
+- Turning on the pump or cycle switch is refused while low water is reported.
+- If low water is reported while the pump is running, a stop is sent (and the cycle is switched off if the cycle started the run). This also covers runs started by the device's own cycle or schedule, but only once the status update arrives (about a second); it cannot prevent the firmware from starting them.
+- If the low-water flag is unknown, nothing is blocked. Turn the switch off if your sensor misreports.
+
+The low-water bit is reverse-engineered and unconfirmed across models/firmware; do not rely on it as your only protection.
+
 ## Known caveats
 - **Do not override the library's write encoder.** An earlier community version did, which moved the duration bytes ahead of the cycle flag; a 3-minute write was stored as 768 minutes and the DI-3 stopped after 1-3 seconds. This integration uses the library's encoder as-is (guarded by `tests/test_protocol.py`).
 - **Recovering a device already affected:** after installing this version and fully restarting Home Assistant, set the device's *Manual watering duration* (the number entity here, or the LetPot app) to the value you want. A Home Assistant helper does not change what is stored on the device.
@@ -31,3 +39,5 @@ A HACS custom integration that **replaces** Home Assistant core's `letpot` integ
 pip install letpot==0.7.0
 python -I -m unittest discover tests
 ```
+
+`tools/repair_manual_duration.py` (from HSTEP's fork) is a one-time terminal tool to inspect or restore a DI-3's stored manual duration; read-only unless `--apply` is given. See its `--help`.

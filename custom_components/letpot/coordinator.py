@@ -4,6 +4,7 @@ import asyncio
 from collections.abc import Callable
 from datetime import timedelta
 import logging
+import time
 from typing import cast, override
 
 from letpot.deviceclient import LetPotDeviceClient
@@ -16,6 +17,8 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import REQUEST_UPDATE_TIMEOUT
+from .safety import STOP_RETRY_SECONDS, protective_stop_changes
+from .watering import async_update_watering
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,10 +52,36 @@ class LetPotDeviceCoordinator[_DataT: LetPotDeviceStatus](
         )
         self.device = device
         self.device_client = device_client
+        # Refuse/stop watering when the device reports low water (watering systems).
+        self.dry_run_protection = True
+        self._last_protective_stop = 0.0
 
     def _handle_status_update(self, status: _DataT) -> None:
         """Distribute status update to entities."""
         self.async_set_updated_data(data=status)
+        if protective := protective_stop_changes(status, self.dry_run_protection):
+            now = time.monotonic()
+            if now - self._last_protective_stop >= STOP_RETRY_SECONDS:
+                self._last_protective_stop = now
+                self.config_entry.async_create_background_task(
+                    self.hass,
+                    self._async_protective_stop(protective),
+                    name=f"letpot dry-run stop {self.device.serial_number}",
+                )
+
+    async def _async_protective_stop(self, changes: dict[str, object]) -> None:
+        """Stop a pump that is running with the water tank reported empty."""
+        _LOGGER.warning(
+            "%s reports low water while pumping; stopping the pump (%s)",
+            self.device.serial_number,
+            ", ".join(f"{k}={v}" for k, v in changes.items()),
+        )
+        try:
+            await async_update_watering(
+                self.device_client, self.device.serial_number, **changes
+            )
+        except LetPotException:
+            _LOGGER.exception("Failed to stop pump on low water; retrying on next update")
 
     @override
     async def _async_setup(self) -> None:

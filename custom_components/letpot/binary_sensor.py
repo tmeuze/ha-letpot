@@ -52,7 +52,7 @@ BINARY_SENSORS: tuple[LetPotBinarySensorEntityDescription[LetPotDeviceStatus], .
         key="low_water",
         translation_key="low_water",
         is_on_fn=lambda status: bool(status.errors.low_water),
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         entity_category=EntityCategory.DIAGNOSTIC,
         device_class=BinarySensorDeviceClass.PROBLEM,
         supported_fn=lambda coordinator: coordinator.data.errors.low_water is not None,

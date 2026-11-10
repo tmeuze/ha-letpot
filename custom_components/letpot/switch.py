@@ -14,15 +14,22 @@ from letpot.models import (
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import LetPotConfigEntry, LetPotDeviceCoordinator
+from .const import DOMAIN
+from .safety import should_block_start
 from .watering import async_update_watering
 from .entity import LetPotEntity, LetPotEntityDescription, exception_handler
 
 # Each change pushes a 'full' device status with the change. The library will cache
 # pending changes to avoid overwriting, but try to avoid a lot of parallelism.
 PARALLEL_UPDATES = 1
+
+# Switches that start the pump and are refused while the device reports low water.
+DRY_RUN_GUARDED = frozenset({"pump", "pump_cycle"})
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -121,6 +128,11 @@ async def async_setup_entry(
         for coordinator in coordinators
         if description.supported_fn(coordinator)
     ]
+    entities.extend(
+        LetPotDryRunProtectionSwitch(coordinator)
+        for coordinator in coordinators
+        if isinstance(coordinator.data, LetPotWateringSystemStatus)
+    )
     async_add_entities(entities)
 
 
@@ -155,6 +167,12 @@ class LetPotSwitchEntity[_DataT: LetPotDeviceStatus](
     @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
+        if self.entity_description.key in DRY_RUN_GUARDED and should_block_start(
+            self.coordinator.data, self.coordinator.dry_run_protection
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="dry_run_blocked"
+            )
         await self.entity_description.set_value_fn(
             self.coordinator.device_client, self.coordinator.device.serial_number, True
         )
@@ -166,3 +184,44 @@ class LetPotSwitchEntity[_DataT: LetPotDeviceStatus](
         await self.entity_description.set_value_fn(
             self.coordinator.device_client, self.coordinator.device.serial_number, False
         )
+
+
+class LetPotDryRunProtectionSwitch(LetPotEntity, SwitchEntity, RestoreEntity):
+    """Configuration switch for dry-run protection (on by default)."""
+
+    _attr_translation_key = "dry_run_protection"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: LetPotDeviceCoordinator) -> None:
+        """Initialize the dry-run protection switch."""
+        super().__init__(coordinator)
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.unique_id}"
+            f"_{coordinator.device.serial_number}"
+            "_dry_run_protection"
+        )
+
+    @override
+    async def async_added_to_hass(self) -> None:
+        """Restore the last chosen state; default is protection on."""
+        await super().async_added_to_hass()
+        if (last := await self.async_get_last_state()) is not None:
+            self.coordinator.dry_run_protection = last.state != "off"
+
+    @property
+    @override
+    def is_on(self) -> bool:
+        """Return if dry-run protection is enabled."""
+        return self.coordinator.dry_run_protection
+
+    @override
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable dry-run protection."""
+        self.coordinator.dry_run_protection = True
+        self.async_write_ha_state()
+
+    @override
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable dry-run protection."""
+        self.coordinator.dry_run_protection = False
+        self.async_write_ha_state()
