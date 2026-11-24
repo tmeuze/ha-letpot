@@ -113,7 +113,7 @@
         "name": "Last watering"
       },
       "watering_end": {
-        "name": "Watering ends"
+        "name": "Watering ends at"
       },
       "last_watering_reason": {
         "name": "Last watering reason",
