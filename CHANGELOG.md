@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+
+- Rewrote the README and added the changelog, state, decisions and credits docs.
+- Renamed the "Watering ends" sensor to "Watering ends at".
+
 ## 1.2.0
 
 - Added dry-run protection for watering systems. Starting the pump or cycle is refused while the device reports low water, and a pump that is running when low water appears is stopped. A config switch turns it off.
