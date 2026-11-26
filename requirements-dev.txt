@@ -1,0 +1,2 @@
+# Test dependency, kept in sync with "requirements" in custom_components/letpot/manifest.json.
+letpot==0.7.0

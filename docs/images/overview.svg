@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 420" role="img" aria-labelledby="t d">
+<title id="t">LetPot integration overview</title>
+<desc id="d">Three layers from top to bottom. Layer 1, device and cloud: the watering system and the LetPot cloud, joined over MQTT. Layer 2, this integration: the python-letpot client, a coordinator that holds the latest status, and the entities shown in Home Assistant. Layer 3, the dry-run guard: a start check on the switches, a stop check in the coordinator, and a switch that turns the guard on or off.</desc>
+<style>
+:root{--bg:#ffffff;--ink:#16202b;--mute:#566474;--card:#ffffff;
+--t:#e3f4f6;--ts:#16808f;--g:#e6f5ec;--gs:#1f8a4c;--a:#fdf1e0;--as:#c27410}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1620;--ink:#e6edf5;--mute:#98a6b6;--card:#18222e;
+--t:#10292e;--ts:#4dc1d1;--g:#12291d;--gs:#4cc27f;--a:#33250f;--as:#f0a947}}
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.h{font-size:15px;font-weight:700}.s{font-size:11.5px;fill:var(--mute)}.c{font-size:12.5px;font-weight:600}.cs{font-size:10.5px;fill:var(--mute)}
+</style>
+<rect width="960" height="420" rx="14" fill="var(--bg)"/>
+
+<rect x="48" y="16" width="864" height="116" rx="12" fill="var(--t)" stroke="var(--ts)" stroke-width="1.5"/>
+<text class="h" x="64" y="42">1  Device and cloud</text>
+<text class="s" x="64" y="62">The cloud sits in between.</text>
+<rect x="260" y="40" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--ts)" stroke-opacity=".55"/>
+<text class="c" x="272" y="64">Watering system</text><text class="cs" x="272" y="84">DI-2 or DI-3, with tank sensor</text>
+<rect x="466" y="40" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--ts)" stroke-opacity=".55"/>
+<text class="c" x="478" y="64">LetPot cloud</text><text class="cs" x="478" y="84">MQTT, needs internet</text>
+
+<rect x="48" y="144" width="864" height="116" rx="12" fill="var(--g)" stroke="var(--gs)" stroke-width="1.5"/>
+<text class="h" x="64" y="170">2  This integration</text>
+<text class="s" x="64" y="190">Reads status, sends changes.</text>
+<rect x="260" y="168" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--gs)" stroke-opacity=".55"/>
+<text class="c" x="272" y="192">python-letpot</text><text class="cs" x="272" y="212">encodes and decodes messages</text>
+<rect x="466" y="168" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--gs)" stroke-opacity=".55"/>
+<text class="c" x="478" y="192">Coordinator</text><text class="cs" x="478" y="212">keeps the latest status</text>
+<rect x="672" y="168" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--gs)" stroke-opacity=".55"/>
+<text class="c" x="684" y="192">Entities</text><text class="cs" x="684" y="212">switches, numbers, sensors</text>
+
+<rect x="48" y="272" width="864" height="116" rx="12" fill="var(--a)" stroke="var(--as)" stroke-width="1.5"/>
+<text class="h" x="64" y="298">3  Dry-run guard</text>
+<text class="s" x="64" y="318">Acts on low water.</text>
+<rect x="260" y="296" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--as)" stroke-opacity=".55"/>
+<text class="c" x="272" y="320">Start check</text><text class="cs" x="272" y="340">refuses pump and cycle on</text>
+<rect x="466" y="296" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--as)" stroke-opacity=".55"/>
+<text class="c" x="478" y="320">Stop check</text><text class="cs" x="478" y="340">stops a running pump</text>
+<rect x="672" y="296" width="190" height="64" rx="8" fill="var(--card)" stroke="var(--as)" stroke-opacity=".55"/>
+<text class="c" x="684" y="320">Guard switch</text><text class="cs" x="684" y="340">on by default, per device</text>
+</svg>

@@ -1,0 +1,11 @@
+# Dependabot cannot read the "requirements" list in manifest.json, so the
+# pinned library is also listed in requirements-dev.txt for it to watch.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14

@@ -19,3 +19,11 @@ When the cycle started the run, the guard also turns the cycle off, since that's
 ## 5. Private helpers for writing settings
 
 python-letpot 0.7.0 has no public setters for the cycle fields, so writes call its private publish helpers. The alternative was a second encoder in this repo, which is the thing decision 1 avoids. We'll switch to public setters when the library adds them.
+
+## 6. Interface wording follows conformIT's UI copy rules
+
+The integration has no screen of its own, so the accessibility rules don't apply, but the entity names, config labels and error messages are the only words a user reads. They follow conformIT's `ui-copy.md`: plain words, one term per concept, and every error ends with a next step. The communication and unknown errors still show the library's exception text inside a sentence, because the cause helps when asking for help. The low-water error says to refill the tank or turn the guard off.
+
+## 7. Dependency cooldown, with a limit
+
+Dependabot is configured for pip with a 7 day cooldown and 14 days for major versions, per conformIT decision 26. Dependabot can't read the `requirements` list in `manifest.json`, which is the pin that actually ships, so the same version is listed in `requirements-dev.txt` for it to watch. The cooldown does not delay security updates, which is automatic on GitHub. What it can't do is update the real pin: a bump in `requirements-dev.txt` leaves `manifest.json` as it was, and changing the library version needs a manual, tested change anyway because decision 1 depends on its byte layout. Security updates also have to be switched on in the repository settings, which no file here controls.

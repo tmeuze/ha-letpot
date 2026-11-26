@@ -160,10 +160,10 @@
   },
   "exceptions": {
     "communication_error": {
-      "message": "An error occurred while communicating with the LetPot device: {exception}"
+      "message": "Could not reach the LetPot device: {exception}. Check that it is online in the LetPot app, then try again."
     },
     "unknown_error": {
-      "message": "An unknown error occurred while communicating with the LetPot device: {exception}"
+      "message": "Something went wrong talking to the LetPot device: {exception}. Try again, and check the Home Assistant log if it keeps happening."
     },
     "dry_run_blocked": {
       "message": "The device reports low water, so watering was not started. Refill the tank, or turn off Dry-run protection to override."
