@@ -1,10 +1,11 @@
 # Changelog
 
-## Unreleased
+## 1.2.2
 
 - Reordered the README to conformIT's standard layout and added the overview diagram.
 - Added a Dependabot config with a 7 day cooldown (14 for major versions) and `requirements-dev.txt` for it to watch.
 - Reworded the two communication error messages so they say what to try next.
+- Updated `docs/STATE.md`.
 
 ## 1.2.1
 

@@ -1,6 +1,6 @@
 # Where this got to
 
-Last updated 2026-11-24.
+Last updated 2026-11-26. The current release is v1.2.2, and HACS offers updates from GitHub releases.
 
 ## Works
 
@@ -13,6 +13,12 @@ Last updated 2026-11-24.
 - The timestamp sensors. They are worked out from "seconds from now" in each status message, so expect small drift.
 - Dry-run protection, in particular whether the low-water flag follows the real tank level.
 
+## Not checked yet
+
+- Nothing runs the integration inside Home Assistant in a test. The offline tests don't cover the entity or coordinator wiring.
+- Whether Dependabot accepts its config, and whether security updates are switched on in the repository settings (VERIFY).
+- How HACS renders the README and its diagram, and how the diagram looks in light mode (VERIFY).
+
 ## Open questions
 
 - Does switching the cycle off really stop a run the cycle started? The device reports that as "cycle disabled while running", but this is untested.
@@ -21,6 +27,6 @@ Last updated 2026-11-24.
 ## Next steps
 
 - Run the checks above on a device and record what happened here.
-- Tag a release so HACS can offer version updates. There are no GitHub releases yet.
 - Decide on a licence and add a `LICENSE` file.
+- Add `AGENTS.md`, which the conformIT standard expects.
 - Send the dry-run guard and the extra entities upstream, as separate pull requests.
